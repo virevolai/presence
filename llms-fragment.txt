@@ -1,0 +1,351 @@
+# Bohita Presence integration
+
+Audience: tenants and coding agents integrating Presence. Bohita publishes
+this fragment only after replacing the release, API, status, and support
+placeholders at the end. It intentionally excludes private runtime endpoints,
+provider/model names, controller credentials, and infrastructure secrets.
+
+Presence is a realtime audio-and-video agent that can notice whether a person
+is present and react to visible conversational cues. It can speak with an
+expressive character, remain interruptible, call tools asynchronously, watch a
+shared product surface, and produce artifacts and session outcomes.
+
+## Fastest path: run the default web experience
+
+An npm package is not required. Create the session on your server, return only
+the safe session fields to your browser, and assign the opaque `embed_url`
+directly to an iframe.
+
+`BOHITA_API_BASE_URL` and account credentials are issued by Bohita. A
+`BOHITA_API_KEY` used for authoring or account-authorized session creation is a
+secret: keep it in a server, local development process, or coding-agent secret
+store, never a browser bundle or `VITE_*` variable.
+
+This does not require deploying a public website. A local Vite app, Codex
+companion, or other local client can embed the remotely hosted client after its
+local process creates a short-lived session. Bohita's own demo can create the
+session behind first-party login or a public-demo admission policy. A purely
+static production SPA needs a separate browser-safe, origin- and
+Presence-scoped publishable/bootstrap credential from Bohita; the secret
+account key is not that credential. Ask Bohita for this access mode if your
+production application has no server component.
+
+For a first demo, omit `presence_id`; the service selects the default published
+Presence.
+
+```http
+POST $BOHITA_API_BASE_URL/v1/sessions
+Authorization: Bearer $BOHITA_API_KEY
+Content-Type: application/json
+
+{
+  "external_id": "your-opaque-user-or-guest-id",
+  "surface": {"type": "web"},
+  "startup": "managed"
+}
+```
+
+A successful response includes:
+
+```json
+{
+  "session_id": "ses_...",
+  "presence_id": "prs_...",
+  "version": 1,
+  "external_id": "your-opaque-user-or-guest-id",
+  "surface": {"type": "web"},
+  "state": "ready",
+  "embed_url": "https://...short-lived-scoped-url...",
+  "expires_at_unix": 1787000000,
+  "created_at_unix": 1786999700.25
+}
+```
+
+Relay only the fields the browser needs, normally `session_id`, `embed_url`,
+and `expires_at_unix`. Do not expose the account key or the complete upstream
+response.
+
+The browser integration has no Presence-specific dependency:
+
+```js
+const response = await fetch('/api/presence/session', {
+  method: 'POST',
+  headers: {'content-type': 'application/json'},
+  credentials: 'same-origin',
+});
+if (!response.ok) throw new Error(`Presence session failed: ${response.status}`);
+
+const session = await response.json();
+const iframe = document.createElement('iframe');
+iframe.src = session.embed_url;
+iframe.allow = 'camera; microphone; autoplay';
+iframe.title = 'Bohita Presence';
+document.querySelector('#presence').replaceChildren(iframe);
+```
+
+Treat `embed_url` as opaque. It is an HTTPS document serving the complete web
+client selected for this session, not a WebSocket address. The client owns its
+media connection, character rendering, audio playback, captions, expressions,
+in-frame artifacts, interruption, reconnect, and cleanup. Do not parse,
+rewrite, persist, or construct this URL. It may be hosted at
+`live.presence.bohita.com`; the embedding page can still be local or live at a
+different origin.
+
+Explain why camera and microphone access are useful before asking for browser
+permission. Your same-origin session endpoint should apply your normal user
+authentication, eligibility, quotas, and abuse controls. Handle `429` as an
+honest at-capacity state rather than retrying in a tight loop.
+
+`startup` controls the web arrival experience:
+
+- `managed` mounts visibly at once. The embedded client owns its visible
+  preparing/arrival treatment while voice and rendering warm, and reveals the
+  character when conversation is genuinely usable.
+- `host` is for deployments that advertise the `bohita.embed.v1` host-message
+  contract. It lets the host keep a warming iframe behind its own placeholder
+  until the client posts `presence.ready`. Mount the iframe immediately even
+  when it is hidden; delaying iframe creation also delays warm-up. Use
+  `managed` unless Bohita has enabled this contract for the selected client.
+
+The session response's `state: "ready"` means the request was admitted and the
+scoped iframe URL can be mounted. It does not claim that first audio is already
+available. `presence.ready` is the application-level web signal:
+
+```json
+{
+  "type": "presence.ready",
+  "protocol": "bohita.embed.v1",
+  "session_id": "ses_..."
+}
+```
+
+Accept that message only from the iframe window and the exact origin of the
+returned `embed_url`. `startup` does not choose an internal runtime or change
+Presence behavior.
+
+## Use an authored Presence
+
+A Presence contains product behavior: role, relationship, knowledge sources,
+allowed tools, character, presentation, and session policy. Publishing creates
+an immutable version.
+
+```http
+POST $BOHITA_API_BASE_URL/v1/presences
+Authorization: Bearer $BOHITA_API_KEY
+Content-Type: application/json
+
+{
+  "name": "Product guide",
+  "role": "Help visitors understand and use our product.",
+  "relationship": "helpdesk",
+  "knowledge_sources": ["https://example.com/llms.txt"],
+  "tools": []
+}
+```
+
+Edit a draft with `PATCH /v1/presences/{presence_id}` and publish it with:
+
+```http
+POST $BOHITA_API_BASE_URL/v1/presences/{presence_id}/publish
+Authorization: Bearer $BOHITA_API_KEY
+```
+
+Then include its public ID when creating a session:
+
+```json
+{
+  "presence_id": "prs_...",
+  "version": "latest",
+  "external_id": "your-opaque-user-or-guest-id",
+  "surface": {"type": "web"},
+  "startup": "managed"
+}
+```
+
+Use `latest` while iterating. Pin the returned integer version when a production
+workflow must remain reproducible.
+
+## Tools and durable events
+
+Tools are model-initiated work needed during a live conversation. They use
+OpenAI-style function declarations and a server-side webhook runtime. Keep the
+webhook out of browser code. Lifecycle subscriptions are not tools: both are
+sibling fields on the Presence definition and are frozen together when it is
+published.
+
+```json
+{
+  "tools": [{
+    "type": "function",
+    "name": "look_up_order",
+    "description": "Look up an order the signed-in customer is allowed to see",
+    "parameters": {
+      "type": "object",
+      "properties": {"order_id": {"type": "string"}},
+      "required": ["order_id"],
+      "additionalProperties": false
+    },
+    "strict": true
+  }],
+  "tool_runtime": {
+    "type": "webhook",
+    "url": "https://example.com/bohita/tools"
+  }
+}
+```
+
+Lifecycle subscriptions report durable facts such as a finalized transcript,
+created artifact, or ended session. Use them for CRM updates and retained
+outcomes rather than pretending they are conversational tools.
+
+```json
+{
+  "event_subscriptions": [{
+    "type": "webhook",
+    "url": "https://example.com/bohita/events",
+    "events": ["artifact.created", "transcript.finalized", "session.ended"]
+  }]
+}
+```
+
+Verify Bohita webhook signatures and deduplicate deliveries by
+`Idempotency-Key`.
+
+For development or occasional polling, the event log is cursor-based:
+
+```http
+GET $BOHITA_API_BASE_URL/v1/sessions/{session_id}/events?after=evt_...&limit=100
+Authorization: Bearer $BOHITA_API_KEY
+```
+
+Omit `after` to read from the beginning. The response contains ordered
+`events`, `next_after`, and `has_more`. Pass `next_after` as the next `after`
+cursor; when caught up, the service returns an empty `events` list and the same
+cursor. This is ordinary polling, not a blocking subscription. Production
+consumers should normally use signed lifecycle webhooks, while Bohita infra
+should durably retry their delivery.
+
+## Artifacts and sharing
+
+The embedded client can render live artifacts inside the Presence experience.
+Private artifact references and temporary content URLs are not public links.
+When an artifact is eligible to share, the client can ask its authenticated
+host for a share grant after an explicit participant action. Only the host/BFF
+creates that grant; the returned `permalink_url` is the canonical link.
+
+Sharing is optional. Implement it only when Bohita has supplied the
+authenticated share-grant endpoint and host-message contract for your
+deployment. Never derive a public URL from an `artifact_ref` or `asset_ref`.
+
+## Other surfaces
+
+All surfaces use `POST /v1/sessions`; the surface selects the usable response
+field.
+
+Raw realtime voice has no iframe:
+
+```json
+{
+  "presence_id": "prs_...",
+  "version": 3,
+  "external_id": "voice-client-123",
+  "surface": {"type": "voice"}
+}
+```
+
+The response contains `realtime.url` and `protocol: "bohita.realtime.v1"`.
+Audio in both directions is PCM signed 16-bit little-endian, mono, at 16 kHz;
+JSON text frames carry controls and events. Connect to the returned scoped URL
+exactly as given.
+
+A meeting session supplies a supported meeting URL and returns a public Session
+in `launching` state. Bohita operates the bridge; callers observe session state
+and events rather than a cloud operation ID.
+
+```json
+{
+  "external_id": "meeting-123",
+  "surface": {
+    "type": "meeting",
+    "meeting_url": "https://teams.live.com/meet/..."
+  }
+}
+```
+
+Phone is a gated surface. Outbound sessions use a provider-neutral request;
+managed-call approval or a verified bring-your-own provider may be required.
+Consent and recording policy are configured server-side. Do not invent a
+consent flow or begin retained recording before the configured authority has
+been established.
+
+```json
+{
+  "presence_id": "prs_...",
+  "external_id": "customer-123",
+  "surface": {
+    "type": "phone",
+    "direction": "outbound",
+    "to": "+12125551212"
+  }
+}
+```
+
+## Privacy and retention
+
+- Camera and microphone use require participant permission.
+- Live media may be processed without being retained.
+- Recordings and durable media are off by default and require the configured
+  tenant policy and applicable consent.
+- Browser clients receive session-scoped credentials, never account or
+  controller credentials.
+- Customer tools run only through the published Presence allowlist.
+- Treat transcripts, recordings, artifacts, and visible-screen content as
+  private customer data unless an explicit sharing policy says otherwise.
+
+## Compatibility and updates
+
+Repository: https://github.com/virevolai/presence
+
+Public contract release: `{{PRESENCE_PUBLIC_RELEASE}}`  
+Published: `{{PRESENCE_PUBLIC_RELEASED_AT}}`  
+API/OpenAPI: `{{BOHITA_OPENAPI_URL}}`  
+Changelog: `{{BOHITA_CHANGELOG_URL}}`  
+Release feed: `{{BOHITA_CHANGELOG_FEED_URL}}`  
+Status: `{{BOHITA_STATUS_URL}}`  
+Support: `{{BOHITA_SUPPORT_URL}}`
+
+The service has several deliberately separate versions:
+
+- `/v1` is the public HTTP API compatibility boundary. A breaking API change
+  requires a new major path; additions within v1 should remain compatible.
+- A Presence's integer `version` is an immutable behavior/configuration
+  snapshot. It is not the API version.
+- `bohita.realtime.v1` is the raw realtime voice wire protocol.
+- The opaque web client is managed remotely, so ordinary iframe integrations
+  do not install or upgrade a renderer package.
+
+Re-read the canonical Bohita `llms.txt` and changelog when integrating or
+changing an integration. Use the release feed for automated update
+notifications. Internal model/runtime deployments that preserve these public
+contracts do not require application changes.
+
+An optional JavaScript package may later provide typed mounting, lifecycle,
+host-message, and framework helpers. A native SDK may implement the same public
+session and protocol contracts. Neither is required for the current iframe
+path, and neither should bundle a stale copy of the remotely managed character
+renderer. The present API does not yet expose every lane needed to reconstruct
+the full iframe as a custom native client; until that contract exists, do not
+describe an npm or Swift package as a deconstructed Presence runtime.
+
+## Session lifecycle
+
+Read or end a session from the server:
+
+```http
+GET  $BOHITA_API_BASE_URL/v1/sessions/{session_id}
+GET  $BOHITA_API_BASE_URL/v1/sessions/{session_id}/events?after=evt_...&limit=100
+POST $BOHITA_API_BASE_URL/v1/sessions/{session_id}/end
+```
+
+Session end is explicit and idempotent. Prefer signed lifecycle webhooks over
+polling when durable outcomes matter.
