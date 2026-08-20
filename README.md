@@ -1,8 +1,8 @@
 # Presence clients
 
-This repository is the public-client boundary for Bohita Presence. It contains
-only public integration contracts and client-side helpers; the private
-execution service lives elsewhere.
+This repository is the public integration boundary for Bohita Presence. It
+contains the public contract today and may contain optional client helpers in
+the future; the hosted iframe and private execution service live elsewhere.
 
 ## Available now
 
@@ -31,3 +31,15 @@ Future JavaScript, Swift, and Android clients belong in separate subdirectories
 here only when their public contracts and implementations are real. They may
 wrap the hosted client or implement supported native lanes, but they should
 not copy the remotely managed character renderer into application bundles.
+
+## Releases and pinning
+
+[`VERSION`](./VERSION) identifies the public contract release prepared by this
+checkout. Stable releases use annotated Git tags such as `v0.1.0`; tags are
+immutable by policy. Pin a tag for a human-readable dependency and its exact
+commit SHA when a build must be reproducible.
+
+The repository release is distinct from `/v1` HTTP compatibility, the
+`bohita.embed.v1` and `bohita.realtime.v1` protocols, and an authored
+Presence's integer version. The hosted iframe remains centrally managed and is
+not pinned by customer applications.

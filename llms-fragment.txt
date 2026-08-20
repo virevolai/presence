@@ -65,6 +65,10 @@ Relay only the fields the browser needs, normally `session_id`, `embed_url`,
 and `expires_at_unix`. Do not expose the account key or the complete upstream
 response.
 
+Across surfaces, Session state is `ready`, `launching`, `ended`, `failed`,
+`canceled`, or `expired`. Treat the last four as terminal and surface their
+safe reason details rather than retrying indefinitely.
+
 The browser integration has no Presence-specific dependency:
 
 ```js
@@ -87,9 +91,8 @@ Treat `embed_url` as opaque. It is an HTTPS document serving the complete web
 client selected for this session, not a WebSocket address. The client owns its
 media connection, character rendering, audio playback, captions, expressions,
 in-frame artifacts, interruption, reconnect, and cleanup. Do not parse,
-rewrite, persist, or construct this URL. It may be hosted at
-`live.presence.bohita.com`; the embedding page can still be local or live at a
-different origin.
+rewrite, persist, or construct this URL. The embedding page can be local or
+live at a different origin from the hosted client.
 
 Explain why camera and microphone access are useful before asking for browser
 permission. Your same-origin session endpoint should apply your normal user
@@ -168,10 +171,9 @@ workflow must remain reproducible.
 ## Tools and durable events
 
 Tools are model-initiated work needed during a live conversation. They use
-OpenAI-style function declarations and a server-side webhook runtime. Keep the
-webhook out of browser code. Lifecycle subscriptions are not tools: both are
-sibling fields on the Presence definition and are frozen together when it is
-published.
+OpenAI-style function declarations and a server-side webhook configured with
+Bohita. Lifecycle subscriptions are not tools: both are sibling fields on the
+Presence definition and are frozen together when it is published.
 
 ```json
 {
@@ -208,8 +210,10 @@ outcomes rather than pretending they are conversational tools.
 }
 ```
 
-Verify Bohita webhook signatures and deduplicate deliveries by
-`Idempotency-Key`.
+Bohita stores these destinations server-side and owns signing, delivery,
+retry, audit, and deduplication. Verify Bohita's webhook signature and process
+each delivery idempotently. The live Presence runtime does not receive the
+destination URL or its secret.
 
 For development or occasional polling, the event log is cursor-based:
 
@@ -222,8 +226,8 @@ Omit `after` to read from the beginning. The response contains ordered
 `events`, `next_after`, and `has_more`. Pass `next_after` as the next `after`
 cursor; when caught up, the service returns an empty `events` list and the same
 cursor. This is ordinary polling, not a blocking subscription. Production
-consumers should normally use signed lifecycle webhooks, while Bohita infra
-should durably retry their delivery.
+consumers should normally use lifecycle webhooks, while Bohita durably owns
+their delivery.
 
 ## Artifacts and sharing
 
@@ -274,9 +278,11 @@ and events rather than a cloud operation ID.
 
 Phone is a gated surface. Outbound sessions use a provider-neutral request;
 managed-call approval or a verified bring-your-own provider may be required.
-Consent and recording policy are configured server-side. Do not invent a
-consent flow or begin retained recording before the configured authority has
-been established.
+Consent interaction and recording preference are configured server-side, but
+a preference to record is not retention authority. Retained recording begins
+only after Bohita establishes session-scoped authority backed by applicable
+consent evidence. Revocation removes that authority. Do not invent a consent
+flow or retain media merely because recording was requested.
 
 ```json
 {
@@ -294,8 +300,9 @@ been established.
 
 - Camera and microphone use require participant permission.
 - Live media may be processed without being retained.
-- Recordings and durable media are off by default and require the configured
-  tenant policy and applicable consent.
+- Recordings and durable media are off by default. Retention requires
+  session-scoped authority backed by the configured tenant policy and
+  applicable consent; recording preference alone is insufficient.
 - Browser clients receive session-scoped credentials, never account or
   controller credentials.
 - Customer tools run only through the published Presence allowlist.
@@ -347,5 +354,5 @@ GET  $BOHITA_API_BASE_URL/v1/sessions/{session_id}/events?after=evt_...&limit=10
 POST $BOHITA_API_BASE_URL/v1/sessions/{session_id}/end
 ```
 
-Session end is explicit and idempotent. Prefer signed lifecycle webhooks over
-polling when durable outcomes matter.
+Session end is explicit and idempotent. Prefer lifecycle webhooks over polling
+when durable outcomes matter.
