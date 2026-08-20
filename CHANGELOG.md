@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- The hosted web client is deployed. Web sessions return an opaque
+  `embed_url` that loads the complete Presence-owned runtime.
+
 ## 0.1.0 - 2026-08-19
 
 - Added the hosted iframe integration contract.
