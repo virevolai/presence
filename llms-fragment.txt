@@ -37,6 +37,7 @@ Presence.
 POST $BOHITA_API_BASE_URL/v1/sessions
 Authorization: Bearer $BOHITA_API_KEY
 Content-Type: application/json
+Idempotency-Key: your-stable-launch-attempt-id
 
 {
   "external_id": "your-opaque-user-or-guest-id",
@@ -57,9 +58,19 @@ A successful response includes:
   "state": "ready",
   "embed_url": "https://...short-lived-scoped-url...",
   "expires_at_unix": 1787000000,
+  "max_seconds": 300,
+  "replayed": false,
   "created_at_unix": 1786999700.25
 }
 ```
+
+Use a stable, account-scoped `Idempotency-Key` when retrying one creation
+attempt. `replayed: true` means Bohita returned that attempt's existing Session;
+reusing the key for a different request is an error. When recording can be
+offered, the response also includes `recording.available`, `policy_version`,
+and the disclosure the host presents before consent. Its presence does not
+mean recording has started. `session_ref` is not part of the public response;
+use `session_id` for Session operations.
 
 Relay only the fields the browser needs, normally `session_id`, `embed_url`,
 and `expires_at_unix`. Do not expose the account key or the complete upstream
@@ -99,6 +110,15 @@ permission. Your same-origin session endpoint should apply your normal user
 authentication, eligibility, quotas, and abuse controls. Handle `429` as an
 honest at-capacity state rather than retrying in a tight loop.
 
+The web surface's camera policy belongs to the published Presence version:
+
+- `required` makes camera readiness part of startup. Use it when the experience
+  itself promises visual Presence, including Bohita's self-demo.
+- `on_request` is the default. Voice starts normally without prompting for a
+  new camera grant. If camera access was already granted, the client may reuse
+  it; otherwise Presence can ask conversationally when visual context would be
+  useful. Refusing camera never blocks the audio conversation in this mode.
+
 `startup` controls the web arrival experience:
 
 - `managed` mounts visibly at once. The embedded client owns its visible
@@ -126,6 +146,14 @@ Accept that message only from the iframe window and the exact origin of the
 returned `embed_url`. `startup` does not choose an internal runtime or change
 Presence behavior.
 
+The iframe may also post startup progress using the same protocol.
+`phase: "restart_required"` means bounded pre-ready reconnects failed and the
+signed Session cannot recover in place. The authenticated host should reserve
+one fresh Session, replace the iframe with its new opaque `embed_url`, and
+bound that replacement rather than creating an infinite loop. `stalled` may
+still be resolved by permission or an in-frame retry. A media socket closing
+by itself does not end a Session.
+
 ## Use an authored Presence
 
 A Presence contains product behavior: role, relationship, knowledge sources,
@@ -142,7 +170,8 @@ Content-Type: application/json
   "role": "Help visitors understand and use our product.",
   "relationship": "helpdesk",
   "knowledge_sources": ["https://example.com/llms.txt"],
-  "tools": []
+  "tools": [],
+  "session_policy": {"camera": "on_request"}
 }
 ```
 
@@ -167,6 +196,11 @@ Then include its public ID when creating a session:
 
 Use `latest` while iterating. Pin the returned integer version when a production
 workflow must remain reproducible.
+
+The published Presence version owns the camera policy. `on_request` starts as
+an audio conversation and may ask for camera access when useful; `required`
+makes a live camera track part of application readiness. Session creation does
+not repeat this policy.
 
 ## Tools and durable events
 

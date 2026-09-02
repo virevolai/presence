@@ -4,6 +4,15 @@
 
 - The hosted web client is deployed. Web sessions return an opaque
   `embed_url` that loads the complete Presence-owned runtime.
+- Documented the public Session creation metadata: real idempotent `replayed`
+  state, optional host-facing recording consent metadata, and no public
+  `session_ref`.
+- Clarified that callers use the admitted `max_seconds` returned for each
+  Session; paid and demo policies may differ.
+- Clarified that camera behavior belongs to the published Presence rather than
+  adding another launch-time option.
+- Synced bounded `restart_required` recovery guidance with the deployed hosted
+  client.
 
 ## 0.1.0 - 2026-08-19
 
