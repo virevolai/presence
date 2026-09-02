@@ -23,6 +23,24 @@ contracts. Bohita publishes it with concrete API, release, changelog, status,
 and support URLs. The hosted iframe implementation, private FastAPI adapters,
 and infrastructure handoffs are not part of this repository.
 
+## Website publishing
+
+The Bohita website's Codex should fetch the fragment for the release it is
+publishing. For example:
+
+```text
+https://raw.githubusercontent.com/virevolai/presence/v0.1.1/llms-fragment.txt
+```
+
+It substitutes the public release/link placeholders and incorporates the
+result into the website's canonical `llms.txt`. Pin the immutable tag or its
+commit and calculate the byte digest during the build. `main` is the preview
+of current documentation and may include unreleased changes; do not silently
+publish it as an older release. Do not copy the backend repository's mirror or
+hand-maintain a fragment hash in website docs. Bohita Infra is a different
+consumer: it implements the private API/runtime handoff and does not publish
+this fragment.
+
 Do not add private runtime URLs, implementation/model names, controller
 credentials, or account secrets here. An account API key belongs on a server
 or in a local development secret store, never in browser JavaScript.

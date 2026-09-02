@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.1.1 - 2026-09-02
+
 - The hosted web client is deployed. Web sessions return an opaque
   `embed_url` that loads the complete Presence-owned runtime.
 - Documented the public Session creation metadata: real idempotent `replayed`
@@ -13,6 +15,8 @@
   adding another launch-time option.
 - Synced bounded `restart_required` recovery guidance with the deployed hosted
   client.
+- Separated the website's `llms-fragment.txt` publishing workflow from Bohita
+  Infra's API/runtime implementation handoff.
 
 ## 0.1.0 - 2026-08-19
 
