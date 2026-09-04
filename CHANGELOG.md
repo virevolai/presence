@@ -2,6 +2,24 @@
 
 ## Unreleased
 
+## 0.1.2 - 2026-09-04
+
+- Improved the concise product description around visual awareness,
+  interruptibility, asynchronous tools, and authorized retained outcomes.
+- Added the required local HTTP-serving step so a `file://` test does not
+  appear as a blank broken embed.
+- Documented the required `Idempotency-Key` on explicit Session end and the
+  deployed typed HTTP error envelope.
+- Made the zero-authoring path explicit: omitting `presence_id` selects
+  Bohita's camera-required visual demo, while authored Presences retain their
+  published camera policy.
+- Reduced the first Session request to `external_id` and `surface`; managed
+  startup remains the default.
+- Clarified reusable Presence authoring and the opaque, Think-only knowledge
+  retrieval boundary.
+- Documented compiled cross-surface retention policy and the authorized
+  Session output manifest.
+
 ## 0.1.1 - 2026-09-02
 
 - The hosted web client is deployed. Web sessions return an opaque

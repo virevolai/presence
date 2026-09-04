@@ -29,7 +29,7 @@ The Bohita website's Codex should fetch the fragment for the release it is
 publishing. For example:
 
 ```text
-https://raw.githubusercontent.com/virevolai/presence/v0.1.1/llms-fragment.txt
+https://raw.githubusercontent.com/virevolai/presence/v0.1.2/llms-fragment.txt
 ```
 
 It substitutes the public release/link placeholders and incorporates the

@@ -5,10 +5,11 @@ this fragment only after replacing the release, API, status, and support
 placeholders at the end. It intentionally excludes private runtime endpoints,
 provider/model names, controller credentials, and infrastructure secrets.
 
-Presence is a realtime audio-and-video agent that can notice whether a person
-is present and react to visible conversational cues. It can speak with an
-expressive character, remain interruptible, call tools asynchronously, watch a
-shared product surface, and produce artifacts and session outcomes.
+Presence is a realtime audio-and-video agent that can notice the person it is
+talking to, react to visible conversational cues, remain interruptible, and
+keep the conversation moving while tools run asynchronously. It can speak with
+an expressive character, observe a shared product surface, and produce
+artifacts and retained session outcomes when authorized.
 
 ## Fastest path: run the default web experience
 
@@ -41,8 +42,7 @@ Idempotency-Key: your-stable-launch-attempt-id
 
 {
   "external_id": "your-opaque-user-or-guest-id",
-  "surface": {"type": "web"},
-  "startup": "managed"
+  "surface": {"type": "web"}
 }
 ```
 
@@ -105,16 +105,29 @@ in-frame artifacts, interruption, reconnect, and cleanup. Do not parse,
 rewrite, persist, or construct this URL. The embedding page can be local or
 live at a different origin from the hosted client.
 
+For local testing, serve the embedding page over HTTP. Do not double-click an
+HTML file or open it with a `file://` URL: that can leave the hosted iframe
+blank in a way that is indistinguishable from a product failure. For a plain
+HTML directory, run `python3 -m http.server 8000` and open
+`http://localhost:8000`.
+
 Explain why camera and microphone access are useful before asking for browser
 permission. Your same-origin session endpoint should apply your normal user
 authentication, eligibility, quotas, and abuse controls. Handle `429` as an
 honest at-capacity state rather than retrying in a tight loop.
 
-The web surface's camera policy belongs to the published Presence version:
+The web surface's camera policy belongs to the published Presence version.
+The managed default selected when `presence_id` is omitted is Bohita's visual
+self-demo, so its camera is `required`: the hosted iframe requests camera and
+microphone access and does not report application readiness until its first
+visual observation succeeds. The two-field request above is therefore enough
+to test the defining visual behavior.
+
+For an authored Presence:
 
 - `required` makes camera readiness part of startup. Use it when the experience
   itself promises visual Presence, including Bohita's self-demo.
-- `on_request` is the default. Voice starts normally without prompting for a
+- `on_request` is the authoring default. Voice starts normally without prompting for a
   new camera grant. If camera access was already granted, the client may reuse
   it; otherwise Presence can ask conversationally when visual context would be
   useful. Refusing camera never blocks the audio conversation in this mode.
@@ -171,7 +184,7 @@ Content-Type: application/json
   "relationship": "helpdesk",
   "knowledge_sources": ["https://example.com/llms.txt"],
   "tools": [],
-  "session_policy": {"camera": "on_request"}
+  "session_policy": {"camera": "on_request", "retention": "off"}
 }
 ```
 
@@ -189,8 +202,7 @@ Then include its public ID when creating a session:
   "presence_id": "prs_...",
   "version": "latest",
   "external_id": "your-opaque-user-or-guest-id",
-  "surface": {"type": "web"},
-  "startup": "managed"
+  "surface": {"type": "web"}
 }
 ```
 
@@ -201,6 +213,20 @@ The published Presence version owns the camera policy. `on_request` starts as
 an audio conversation and may ask for camera access when useful; `required`
 makes a live camera track part of application readiness. Session creation does
 not repeat this policy.
+
+Create a Presence once for a logical product or role, retain its returned
+`presence_id`, and publish new versions as its instructions or knowledge
+change. Do not create another Presence for every live Session. An integration
+that retries authoring should use its stable account-scoped idempotency key so
+the control plane can return the same logical Presence instead of accumulating
+duplicates.
+
+`knowledge_sources` are authoring inputs. Bohita prepares them and binds the
+published version to an opaque knowledge package. Live Presence receives
+bounded startup context plus a `search_knowledge` capability scoped to the
+Session; Think queries that capability when exact evidence is needed. The
+runtime does not crawl the authoring URLs, and source contents are not placed
+directly in Yap's context.
 
 ## Tools and durable events
 
@@ -337,6 +363,11 @@ flow or retain media merely because recording was requested.
 - Recordings and durable media are off by default. Retention requires
   session-scoped authority backed by the configured tenant policy and
   applicable consent; recording preference alone is insufficient.
+- Retention behavior belongs to the published Presence. `off` never offers
+  retention, `on` expects authority established by the host, and `on_request`
+  permits Presence to act on a clear participant request. This policy is not
+  repeated on Session creation. When Presence obtains consent in-band, only
+  content after the confirmed change is retained.
 - Browser clients receive session-scoped credentials, never account or
   controller credentials.
 - Customer tools run only through the published Presence allowlist.
@@ -385,8 +416,68 @@ Read or end a session from the server:
 ```http
 GET  $BOHITA_API_BASE_URL/v1/sessions/{session_id}
 GET  $BOHITA_API_BASE_URL/v1/sessions/{session_id}/events?after=evt_...&limit=100
+GET  $BOHITA_API_BASE_URL/v1/sessions/{session_id}/outputs
+```
+
+End it with a separate stable key for that cleanup attempt. The header is
+required; omitting it returns HTTP `400`.
+
+```http
 POST $BOHITA_API_BASE_URL/v1/sessions/{session_id}/end
+Authorization: Bearer $BOHITA_API_KEY
+Idempotency-Key: your-stable-end-attempt-id
 ```
 
 Session end is explicit and idempotent. Prefer lifecycle webhooks over polling
-when durable outcomes matter.
+when durable outcomes matter. The authorized `outputs` response is the
+converged manifest for retained transcripts, artifact references, recording
+manifests, summaries, and exports that exist for that Session. Fields may
+appear after `session.ended` while an upload or another execution lane
+finishes; treat stable output identities idempotently rather than assuming the
+first read is final.
+
+Typical response shape:
+
+```json
+{
+  "session_id": "psn_...",
+  "state": "ended",
+  "outputs": [
+    {
+      "kind": "transcript",
+      "output_id": "transcript",
+      "schema_version": "1",
+      "content": [{"t_ms": 1200, "role": "user", "text": "..."}]
+    },
+    {
+      "kind": "artifact",
+      "output_id": "meeting-notes",
+      "artifact_ref": "opaque-do-not-parse",
+      "renderer": "tldraw",
+      "shareable": true
+    },
+    {
+      "kind": "recording",
+      "recording_id": "rec_...",
+      "manifest_asset_ref": "opaque-do-not-parse"
+    }
+  ]
+}
+```
+
+Do not construct a download or share URL from an opaque ref. Use the
+authorized URLs or explicit share-grant flow returned by Bohita.
+
+## HTTP errors
+
+Public errors use HTTP status plus a top-level `detail`. Its value may be a
+string, a typed object such as
+`{"code":"INTERNAL","message":"..."}`, or an array of validation details
+for `422`. Branch on HTTP status first, then use `detail.code` when present.
+
+Common statuses are `400`, `401`, `402`, `403`, `404`, `409`, `422`, `429`,
+`500`, and `503`. A missing required `Idempotency-Key` returns `400`; reusing
+one for changed mutation input returns `409`. Preserve the key when retrying
+the same mutation after a transport error or retryable server response. Use
+bounded backoff for `429`, `500`, and `503`; `Retry-After` is not currently
+guaranteed.
