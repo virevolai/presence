@@ -1,8 +1,8 @@
 # Bohita Presence integration
 
-Audience: tenants and coding agents integrating Presence. Bohita publishes
-this fragment only after replacing the release, API, status, and support
-placeholders at the end. It intentionally excludes private runtime endpoints,
+Audience: tenants and coding agents integrating Presence. This fragment is
+the public Presence portion Bohita can include in its canonical `llms.txt`.
+It intentionally excludes private runtime endpoints,
 provider/model names, controller credentials, and infrastructure secrets.
 
 Presence is a realtime audio-and-video agent that can notice the person it is
@@ -21,6 +21,12 @@ directly to an iframe.
 `BOHITA_API_KEY` used for authoring or account-authorized session creation is a
 secret: keep it in a server, local development process, or coding-agent secret
 store, never a browser bundle or `VITE_*` variable.
+
+Customer code calls the Bohita-facing API base URL (normally
+`https://api.bohita.com`). Bohita Infra authenticates and forwards these
+requests; customers never call Modal or other private Presence runtimes.
+`https://presence.bohita.com` is the hosted iframe/discovery origin, not the
+customer API origin.
 
 This does not require deploying a public website. A local Vite app, Codex
 companion, or other local client can embed the remotely hosted client after its
@@ -50,8 +56,8 @@ A successful response includes:
 
 ```json
 {
-  "session_id": "ses_...",
-  "presence_id": "prs_...",
+  "session_id": "psn_...",
+  "presence_id": "presence/default",
   "version": 1,
   "external_id": "your-opaque-user-or-guest-id",
   "surface": {"type": "web"},
@@ -151,7 +157,7 @@ available. `presence.ready` is the application-level web signal:
 {
   "type": "presence.ready",
   "protocol": "bohita.embed.v1",
-  "session_id": "ses_..."
+  "session_id": "psn_..."
 }
 ```
 
@@ -177,6 +183,7 @@ an immutable version.
 POST $BOHITA_API_BASE_URL/v1/presences
 Authorization: Bearer $BOHITA_API_KEY
 Content-Type: application/json
+Idempotency-Key: your-stable-authoring-attempt-id
 
 {
   "name": "Product guide",
@@ -200,14 +207,13 @@ Then include its public ID when creating a session:
 ```json
 {
   "presence_id": "prs_...",
-  "version": "latest",
   "external_id": "your-opaque-user-or-guest-id",
   "surface": {"type": "web"}
 }
 ```
 
-Use `latest` while iterating. Pin the returned integer version when a production
-workflow must remain reproducible.
+Omitting `version` selects the latest published version. Pin the returned
+integer version when a production workflow must remain reproducible.
 
 The published Presence version owns the camera policy. `on_request` starts as
 an audio conversation and may ask for camera access when useful; `required`
@@ -227,6 +233,11 @@ bounded startup context plus a `search_knowledge` capability scoped to the
 Session; Think queries that capability when exact evidence is needed. The
 runtime does not crawl the authoring URLs, and source contents are not placed
 directly in Yap's context.
+
+The Session-level `knowledge` and `knowledge_use_case` fields are a convenience
+for a one-off or exploratory Session. Use them when trying a product quickly;
+use `POST /v1/presences` plus publish when the same role and sources should be
+reused across visitors. Do not create a new Presence for every visitor.
 
 ## Tools and durable events
 
@@ -274,6 +285,10 @@ Bohita stores these destinations server-side and owns signing, delivery,
 retry, audit, and deduplication. Verify Bohita's webhook signature and process
 each delivery idempotently. The live Presence runtime does not receive the
 destination URL or its secret.
+
+The webhook URL forms above belong only to Bohita's customer-facing API.
+Bohita replaces them with opaque action/subscription bindings before proxying
+the Presence draft to the Presence-owned control plane.
 
 For development or occasional polling, the event log is cursor-based:
 
@@ -378,13 +393,12 @@ flow or retain media merely because recording was requested.
 
 Repository: https://github.com/virevolai/presence
 
-Public contract release: `{{PRESENCE_PUBLIC_RELEASE}}`  
-Published: `{{PRESENCE_PUBLIC_RELEASED_AT}}`  
-API/OpenAPI: `{{BOHITA_OPENAPI_URL}}`  
-Changelog: `{{BOHITA_CHANGELOG_URL}}`  
-Release feed: `{{BOHITA_CHANGELOG_FEED_URL}}`  
-Status: `{{BOHITA_STATUS_URL}}`  
-Support: `{{BOHITA_SUPPORT_URL}}`
+Public contract release: `v0.1.3`<br>
+Published: `2026-09-16`<br>
+API/OpenAPI: https://presence.bohita.com/openapi.json<br>
+Changelog: https://github.com/virevolai/presence/blob/v0.1.3/CHANGELOG.md<br>
+Release feed: https://github.com/virevolai/presence/releases<br>
+Support: mailto:support@bohita.com
 
 The service has several deliberately separate versions:
 
@@ -453,7 +467,7 @@ Typical response shape:
       "kind": "artifact",
       "output_id": "meeting-notes",
       "artifact_ref": "opaque-do-not-parse",
-      "renderer": "tldraw",
+      "renderer": "presence.board",
       "shareable": true
     },
     {
@@ -464,6 +478,12 @@ Typical response shape:
   ]
 }
 ```
+
+`presence.board` is the stable artifact vocabulary. The hosted client
+currently renders it through an Excalidraw adapter; customer applications do
+not load Excalidraw or translate the document themselves. Legacy `tldraw`
+snapshots may be accepted for compatibility but should not be emitted by new
+integrations.
 
 Do not construct a download or share URL from an opaque ref. Use the
 authorized URLs or explicit share-grant flow returned by Bohita.

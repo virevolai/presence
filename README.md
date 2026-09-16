@@ -12,8 +12,13 @@ the future; the hosted iframe and private execution service live elsewhere.
   reconnect behavior. No npm package is required.
 - **Agent-readable integration fragment:**
   [`llms-fragment.txt`](./llms-fragment.txt) is the Presence portion Bohita
-  publishes inside its canonical `llms.txt` after filling its release and
-  support placeholders.
+  publishes inside its canonical `llms.txt`.
+- **OpenAPI contract:** [`openapi.json`](./openapi.json) is the versioned,
+  reproducible snapshot of the public `/v1/presences` and `/v1/sessions`
+  surface. Bohita should publish the matching document at
+  `https://presence.bohita.com/openapi.json` for discovery.
+The OpenAPI document's `info.version` identifies the API schema; the repository
+release and tag identify this published snapshot.
 
 ## Public contract
 
@@ -23,23 +28,51 @@ contracts. Bohita publishes it with concrete API, release, changelog, status,
 and support URLs. The hosted iframe implementation, private FastAPI adapters,
 and infrastructure handoffs are not part of this repository.
 
+## Minimal customization
+
+For a product such as Stripe, create one reusable Presence for the product
+role and its documentation, publish it, then create Sessions against that
+`presence_id`:
+
+```text
+POST /v1/presences
+  {"name":"Stripe support","role":"Help developers integrate Stripe Connect.",
+   "relationship":"helpdesk",
+   "knowledge_sources":["https://docs.stripe.com/connect"]}
+POST /v1/presences/{presence_id}/publish
+POST /v1/sessions
+  {"presence_id":"prs_...","external_id":"visitor_123",
+   "surface":{"type":"web"}}
+```
+
+The same pattern works for Modal or another product. Add function declarations
+and a customer-owned tool endpoint only when the Presence needs actions; use
+the Session-level `knowledge` shortcut for a one-off experiment.
+
 ## Website publishing
 
 The Bohita website's Codex should fetch the fragment for the release it is
 publishing. For example:
 
 ```text
-https://raw.githubusercontent.com/virevolai/presence/v0.1.2/llms-fragment.txt
+https://raw.githubusercontent.com/virevolai/presence/v0.1.3/llms-fragment.txt
 ```
 
-It substitutes the public release/link placeholders and incorporates the
-result into the website's canonical `llms.txt`. Pin the immutable tag or its
+It incorporates the fragment into the website's canonical `llms.txt`. Pin the
+immutable tag or its
 commit and calculate the byte digest during the build. `main` is the preview
 of current documentation and may include unreleased changes; do not silently
 publish it as an older release. Do not copy the backend repository's mirror or
 hand-maintain a fragment hash in website docs. Bohita Infra is a different
 consumer: it implements the private API/runtime handoff and does not publish
 this fragment.
+
+Generated clients and contract validators should pin the matching OpenAPI
+document as well:
+
+```text
+https://raw.githubusercontent.com/virevolai/presence/v0.1.3/openapi.json
+```
 
 Do not add private runtime URLs, implementation/model names, controller
 credentials, or account secrets here. An account API key belongs on a server

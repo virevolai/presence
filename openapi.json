@@ -1,0 +1,1405 @@
+{
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "BOHITA_API_KEY"
+      }
+    },
+    "schemas": {
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "title": "Detail",
+            "type": "array"
+          }
+        },
+        "title": "HTTPValidationError",
+        "type": "object"
+      },
+      "PublicPresenceAudioFormat": {
+        "additionalProperties": false,
+        "properties": {
+          "channels": {
+            "const": 1,
+            "default": 1,
+            "title": "Channels",
+            "type": "integer"
+          },
+          "encoding": {
+            "const": "pcm_s16le",
+            "default": "pcm_s16le",
+            "title": "Encoding",
+            "type": "string"
+          },
+          "sample_rate_hz": {
+            "const": 16000,
+            "default": 16000,
+            "title": "Sample Rate Hz",
+            "type": "integer"
+          }
+        },
+        "title": "PublicPresenceAudioFormat",
+        "type": "object"
+      },
+      "PublicPresenceDraftResponse": {
+        "additionalProperties": true,
+        "description": "Safe draft projection; Presence may add public definition fields.",
+        "properties": {
+          "event_subscriptions": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/PublicPresenceEventSubscriptionResponse"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Event Subscriptions"
+          },
+          "presence_id": {
+            "title": "Presence Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "presence_id"
+        ],
+        "title": "PublicPresenceDraftResponse",
+        "type": "object"
+      },
+      "PublicPresenceEventPageResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "events": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Events",
+            "type": "array"
+          },
+          "has_more": {
+            "title": "Has More",
+            "type": "boolean"
+          },
+          "next_after": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next After"
+          }
+        },
+        "required": [
+          "events",
+          "has_more"
+        ],
+        "title": "PublicPresenceEventPageResponse",
+        "type": "object"
+      },
+      "PublicPresenceEventSubscriptionResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "events": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Events",
+            "type": "array"
+          },
+          "signing_secret": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Signing Secret"
+          },
+          "type": {
+            "const": "webhook",
+            "default": "webhook",
+            "title": "Type",
+            "type": "string"
+          },
+          "url": {
+            "title": "Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "url",
+          "events"
+        ],
+        "title": "PublicPresenceEventSubscriptionResponse",
+        "type": "object"
+      },
+      "PublicPresenceOutputsResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "outputs": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Outputs",
+            "type": "array"
+          },
+          "session_id": {
+            "title": "Session Id",
+            "type": "string"
+          },
+          "state": {
+            "enum": [
+              "ready",
+              "launching",
+              "ended",
+              "failed",
+              "canceled",
+              "expired"
+            ],
+            "title": "State",
+            "type": "string"
+          }
+        },
+        "required": [
+          "session_id",
+          "state",
+          "outputs"
+        ],
+        "title": "PublicPresenceOutputsResponse",
+        "type": "object"
+      },
+      "PublicPresencePhoneResponse": {
+        "additionalProperties": true,
+        "properties": {
+          "direction": {
+            "enum": [
+              "inbound",
+              "outbound"
+            ],
+            "title": "Direction",
+            "type": "string"
+          },
+          "state": {
+            "title": "State",
+            "type": "string"
+          }
+        },
+        "required": [
+          "direction",
+          "state"
+        ],
+        "title": "PublicPresencePhoneResponse",
+        "type": "object"
+      },
+      "PublicPresenceRealtimeResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "input_audio": {
+            "$ref": "#/components/schemas/PublicPresenceAudioFormat"
+          },
+          "output_audio": {
+            "$ref": "#/components/schemas/PublicPresenceAudioFormat"
+          },
+          "protocol": {
+            "const": "bohita.realtime.v1",
+            "default": "bohita.realtime.v1",
+            "title": "Protocol",
+            "type": "string"
+          },
+          "url": {
+            "title": "Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "url",
+          "input_audio",
+          "output_audio"
+        ],
+        "title": "PublicPresenceRealtimeResponse",
+        "type": "object"
+      },
+      "PublicPresenceRecordingResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "available": {
+            "title": "Available",
+            "type": "boolean"
+          },
+          "disclosure": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Disclosure"
+          },
+          "policy_version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Policy Version"
+          }
+        },
+        "required": [
+          "available"
+        ],
+        "title": "PublicPresenceRecordingResponse",
+        "type": "object"
+      },
+      "PublicPresenceSessionCreate": {
+        "additionalProperties": false,
+        "properties": {
+          "external_id": {
+            "anyOf": [
+              {
+                "maxLength": 255,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "External Id"
+          },
+          "knowledge": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "maxItems": 20,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Knowledge"
+          },
+          "knowledge_use_case": {
+            "anyOf": [
+              {
+                "maxLength": 4000,
+                "minLength": 3,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Knowledge Use Case"
+          },
+          "presence_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Presence Id"
+          },
+          "requested_max_seconds": {
+            "anyOf": [
+              {
+                "maximum": 86400.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Requested Max Seconds"
+          },
+          "startup": {
+            "default": "managed",
+            "enum": [
+              "managed",
+              "host"
+            ],
+            "title": "Startup",
+            "type": "string"
+          },
+          "surface": {
+            "$ref": "#/components/schemas/PublicPresenceSurface"
+          },
+          "version": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "const": "latest",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": "latest",
+            "title": "Version"
+          }
+        },
+        "title": "PublicPresenceSessionCreate",
+        "type": "object"
+      },
+      "PublicPresenceSessionEnd": {
+        "additionalProperties": false,
+        "properties": {
+          "reason": {
+            "default": "customer_ended",
+            "maxLength": 100,
+            "title": "Reason",
+            "type": "string"
+          }
+        },
+        "title": "PublicPresenceSessionEnd",
+        "type": "object"
+      },
+      "PublicPresenceSessionResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "created_at_unix": {
+            "title": "Created At Unix",
+            "type": "number"
+          },
+          "embed_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Embed Url"
+          },
+          "expires_at_unix": {
+            "title": "Expires At Unix",
+            "type": "integer"
+          },
+          "external_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "External Id"
+          },
+          "max_seconds": {
+            "minimum": 1.0,
+            "title": "Max Seconds",
+            "type": "integer"
+          },
+          "phone": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PublicPresencePhoneResponse"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "presence_id": {
+            "title": "Presence Id",
+            "type": "string"
+          },
+          "realtime": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PublicPresenceRealtimeResponse"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "recording": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PublicPresenceRecordingResponse"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "replayed": {
+            "title": "Replayed",
+            "type": "boolean"
+          },
+          "session_id": {
+            "title": "Session Id",
+            "type": "string"
+          },
+          "state": {
+            "enum": [
+              "ready",
+              "launching",
+              "ended",
+              "failed",
+              "canceled",
+              "expired"
+            ],
+            "title": "State",
+            "type": "string"
+          },
+          "surface": {
+            "additionalProperties": true,
+            "title": "Surface",
+            "type": "object"
+          },
+          "version": {
+            "minimum": 1.0,
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "session_id",
+          "presence_id",
+          "version",
+          "surface",
+          "state",
+          "expires_at_unix",
+          "max_seconds",
+          "replayed",
+          "created_at_unix"
+        ],
+        "title": "PublicPresenceSessionResponse",
+        "type": "object"
+      },
+      "PublicPresenceSurface": {
+        "additionalProperties": false,
+        "properties": {
+          "direction": {
+            "anyOf": [
+              {
+                "enum": [
+                  "inbound",
+                  "outbound"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Direction"
+          },
+          "meeting_url": {
+            "anyOf": [
+              {
+                "format": "uri",
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Meeting Url"
+          },
+          "to": {
+            "anyOf": [
+              {
+                "maxLength": 50,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "To"
+          },
+          "type": {
+            "default": "web",
+            "enum": [
+              "web",
+              "voice",
+              "meeting",
+              "phone"
+            ],
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "title": "PublicPresenceSurface",
+        "type": "object"
+      },
+      "PublicPresenceVersionResponse": {
+        "additionalProperties": true,
+        "description": "Safe immutable-version projection with private compilation fields removed.",
+        "properties": {
+          "created_at_unix": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created At Unix"
+          },
+          "definition": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Definition"
+          },
+          "event_subscriptions": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/PublicPresenceEventSubscriptionResponse"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Event Subscriptions"
+          },
+          "presence_id": {
+            "title": "Presence Id",
+            "type": "string"
+          },
+          "version": {
+            "minimum": 1.0,
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "presence_id",
+          "version"
+        ],
+        "title": "PublicPresenceVersionResponse",
+        "type": "object"
+      },
+      "ValidationError": {
+        "properties": {
+          "ctx": {
+            "title": "Context",
+            "type": "object"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "title": "Location",
+            "type": "array"
+          },
+          "msg": {
+            "title": "Message",
+            "type": "string"
+          },
+          "type": {
+            "title": "Error Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError",
+        "type": "object"
+      }
+    }
+  },
+  "info": {
+    "description": "Customer-facing Presence authoring and Session API.",
+    "title": "Bohita Presence API",
+    "version": "1.0.0"
+  },
+  "openapi": "3.1.0",
+  "security": [
+    {"bearerAuth": []}
+  ],
+  "paths": {
+    "/v1/presences": {
+      "post": {
+        "operationId": "create_presence_v1_presences_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Idempotency-Key"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "title": "Request",
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicPresenceDraftResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Presence",
+        "tags": [
+          "presence-public-api"
+        ]
+      }
+    },
+    "/v1/presences/{presence_id}": {
+      "get": {
+        "operationId": "get_presence_v1_presences__presence_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "presence_id",
+            "required": true,
+            "schema": {
+              "title": "Presence Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicPresenceDraftResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Presence",
+        "tags": [
+          "presence-public-api"
+        ]
+      },
+      "patch": {
+        "operationId": "update_presence_v1_presences__presence_id__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "presence_id",
+            "required": true,
+            "schema": {
+              "title": "Presence Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Idempotency-Key"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "title": "Request",
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicPresenceDraftResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Update Presence",
+        "tags": [
+          "presence-public-api"
+        ]
+      }
+    },
+    "/v1/presences/{presence_id}/publish": {
+      "post": {
+        "operationId": "publish_presence_v1_presences__presence_id__publish_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "presence_id",
+            "required": true,
+            "schema": {
+              "title": "Presence Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Idempotency-Key"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicPresenceVersionResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Publish Presence",
+        "tags": [
+          "presence-public-api"
+        ]
+      }
+    },
+    "/v1/presences/{presence_id}/versions/{version}": {
+      "get": {
+        "operationId": "get_presence_version_v1_presences__presence_id__versions__version__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "presence_id",
+            "required": true,
+            "schema": {
+              "title": "Presence Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "version",
+            "required": true,
+            "schema": {
+              "title": "Version",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicPresenceVersionResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Presence Version",
+        "tags": [
+          "presence-public-api"
+        ]
+      }
+    },
+    "/v1/sessions": {
+      "post": {
+        "operationId": "create_presence_session_v1_sessions_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Idempotency-Key"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PublicPresenceSessionCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicPresenceSessionResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Presence Session",
+        "tags": [
+          "presence-public-api"
+        ]
+      }
+    },
+    "/v1/sessions/{session_id}": {
+      "get": {
+        "operationId": "get_presence_session_v1_sessions__session_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "title": "Session Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicPresenceSessionResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Presence Session",
+        "tags": [
+          "presence-public-api"
+        ]
+      }
+    },
+    "/v1/sessions/{session_id}/end": {
+      "post": {
+        "operationId": "end_presence_session_v1_sessions__session_id__end_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "title": "Session Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Idempotency-Key"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/PublicPresenceSessionEnd"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Request"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicPresenceSessionResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "End Presence Session",
+        "tags": [
+          "presence-public-api"
+        ]
+      }
+    },
+    "/v1/sessions/{session_id}/events": {
+      "get": {
+        "operationId": "get_presence_session_events_v1_sessions__session_id__events_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "title": "Session Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "after",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "After"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 100,
+              "maximum": 500,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicPresenceEventPageResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Presence Session Events",
+        "tags": [
+          "presence-public-api"
+        ]
+      }
+    },
+    "/v1/sessions/{session_id}/outputs": {
+      "get": {
+        "operationId": "get_presence_session_outputs_v1_sessions__session_id__outputs_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "title": "Session Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicPresenceOutputsResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Presence Session Outputs",
+        "tags": [
+          "presence-public-api"
+        ]
+      }
+    }
+  },
+  "servers": [
+    {
+      "url": "https://api.bohita.com"
+    }
+  ]
+}

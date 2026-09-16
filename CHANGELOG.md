@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+## 0.1.3 - 2026-09-16
+
+- Added the public OpenAPI snapshot for generated clients and validators.
+- Aligned the agent fragment with the customer-facing API base, hosted OpenAPI
+  discovery URL, reusable Presence authoring flow, and session knowledge
+  shortcut.
+- Documented the stable `presence.board` artifact vocabulary and support
+  contact.
+
 ## 0.1.2 - 2026-09-04
 
 - Improved the concise product description around visual awareness,
