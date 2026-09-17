@@ -316,6 +316,21 @@ Sharing is optional. Implement it only when Bohita has supplied the
 authenticated share-grant endpoint and host-message contract for your
 deployment. Never derive a public URL from an `artifact_ref` or `asset_ref`.
 
+## Current customer-key capabilities
+
+The public Presence API key supports the following customer-facing operations:
+
+- create and publish Presence drafts;
+- configure custom role/guidance, knowledge sources, and customer tools;
+- create web, raw voice, and meeting Sessions; and
+- create approved outbound-phone Sessions.
+
+Inbound phone Sessions remain carrier-originated and require the authorized
+number-to-tenant mapping. Managed outbound phone requires Bohita approval (or
+an approved bring-your-own-provider path). Do not call private controller,
+Modal, or carrier endpoints directly; use the public API and the returned
+scoped Session fields.
+
 ## Other surfaces
 
 All surfaces use `POST /v1/sessions`; the surface selects the usable response
@@ -351,8 +366,10 @@ and events rather than a cloud operation ID.
 }
 ```
 
-Phone is a gated surface. Outbound sessions use a provider-neutral request;
-managed-call approval or a verified bring-your-own provider may be required.
+Phone is a gated surface. Outbound Sessions use a provider-neutral request;
+managed-call approval or a verified bring-your-own provider is required.
+Inbound calls enter through the authorized carrier path rather than public
+customer-key Session creation.
 Consent interaction and recording preference are configured server-side, but
 a preference to record is not retention authority. Retained recording begins
 only after Bohita establishes session-scoped authority backed by applicable
