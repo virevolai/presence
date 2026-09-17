@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+## 0.1.4 - 2026-09-17
+
+- Clarified the current public customer-key capabilities: Presence authoring,
+  custom guidance/knowledge/tools, web, voice, meeting, and approved outbound
+  phone Sessions.
+- Clarified that inbound phone is carrier-originated and managed outbound phone
+  remains approval-gated.
+
 ## 0.1.3 - 2026-09-16
 
 - Added the public OpenAPI snapshot for generated clients and validators.

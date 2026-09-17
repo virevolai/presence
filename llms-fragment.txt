@@ -410,10 +410,10 @@ flow or retain media merely because recording was requested.
 
 Repository: https://github.com/virevolai/presence
 
-Public contract release: `v0.1.3`<br>
-Published: `2026-09-16`<br>
+Public contract release: `v0.1.4`<br>
+Published: `2026-09-17`<br>
 API/OpenAPI: https://presence.bohita.com/openapi.json<br>
-Changelog: https://github.com/virevolai/presence/blob/v0.1.3/CHANGELOG.md<br>
+Changelog: https://github.com/virevolai/presence/blob/v0.1.4/CHANGELOG.md<br>
 Release feed: https://github.com/virevolai/presence/releases<br>
 Support: mailto:support@bohita.com
 

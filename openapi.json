@@ -1,12 +1,5 @@
 {
   "components": {
-    "securitySchemes": {
-      "bearerAuth": {
-        "type": "http",
-        "scheme": "bearer",
-        "bearerFormat": "BOHITA_API_KEY"
-      }
-    },
     "schemas": {
       "HTTPValidationError": {
         "properties": {
@@ -656,17 +649,22 @@
         "title": "ValidationError",
         "type": "object"
       }
+    },
+    "securitySchemes": {
+      "PresenceApiKey": {
+        "bearerFormat": "Bohita Presence API key",
+        "description": "Customer-owned Presence API key.",
+        "scheme": "bearer",
+        "type": "http"
+      }
     }
   },
   "info": {
-    "description": "Customer-facing Presence authoring and Session API.",
+    "description": "Customer-facing Presence authoring and Session API. A customer Presence API key may author custom definitions, authenticated tool webhooks, and use web, voice, meeting, and approved managed outbound-phone Sessions; inbound phone is carrier-originated and managed outbound phone requires Rome approval.",
     "title": "Bohita Presence API",
     "version": "1.0.0"
   },
   "openapi": "3.1.0",
-  "security": [
-    {"bearerAuth": []}
-  ],
   "paths": {
     "/v1/presences": {
       "post": {
@@ -691,7 +689,7 @@
           {
             "in": "header",
             "name": "Authorization",
-            "required": false,
+            "required": true,
             "schema": {
               "anyOf": [
                 {
@@ -761,7 +759,7 @@
           {
             "in": "header",
             "name": "Authorization",
-            "required": false,
+            "required": true,
             "schema": {
               "anyOf": [
                 {
@@ -833,7 +831,7 @@
           {
             "in": "header",
             "name": "Authorization",
-            "required": false,
+            "required": true,
             "schema": {
               "anyOf": [
                 {
@@ -919,7 +917,7 @@
           {
             "in": "header",
             "name": "Authorization",
-            "required": false,
+            "required": true,
             "schema": {
               "anyOf": [
                 {
@@ -986,7 +984,7 @@
           {
             "in": "header",
             "name": "Authorization",
-            "required": false,
+            "required": true,
             "schema": {
               "anyOf": [
                 {
@@ -1035,7 +1033,7 @@
           {
             "in": "header",
             "name": "Idempotency-Key",
-            "required": true,
+            "required": false,
             "schema": {
               "anyOf": [
                 {
@@ -1051,7 +1049,7 @@
           {
             "in": "header",
             "name": "Authorization",
-            "required": false,
+            "required": true,
             "schema": {
               "anyOf": [
                 {
@@ -1119,7 +1117,7 @@
           {
             "in": "header",
             "name": "Authorization",
-            "required": false,
+            "required": true,
             "schema": {
               "anyOf": [
                 {
@@ -1177,7 +1175,7 @@
           {
             "in": "header",
             "name": "Idempotency-Key",
-            "required": true,
+            "required": false,
             "schema": {
               "anyOf": [
                 {
@@ -1193,7 +1191,7 @@
           {
             "in": "header",
             "name": "Authorization",
-            "required": false,
+            "required": true,
             "schema": {
               "anyOf": [
                 {
@@ -1296,7 +1294,7 @@
           {
             "in": "header",
             "name": "Authorization",
-            "required": false,
+            "required": true,
             "schema": {
               "anyOf": [
                 {
@@ -1354,7 +1352,7 @@
           {
             "in": "header",
             "name": "Authorization",
-            "required": false,
+            "required": true,
             "schema": {
               "anyOf": [
                 {
@@ -1397,6 +1395,11 @@
       }
     }
   },
+  "security": [
+    {
+      "PresenceApiKey": []
+    }
+  ],
   "servers": [
     {
       "url": "https://api.bohita.com"

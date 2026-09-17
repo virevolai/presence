@@ -55,7 +55,7 @@ The Bohita website's Codex should fetch the fragment for the release it is
 publishing. For example:
 
 ```text
-https://raw.githubusercontent.com/virevolai/presence/v0.1.3/llms-fragment.txt
+https://raw.githubusercontent.com/virevolai/presence/v0.1.4/llms-fragment.txt
 ```
 
 It incorporates the fragment into the website's canonical `llms.txt`. Pin the
@@ -71,7 +71,7 @@ Generated clients and contract validators should pin the matching OpenAPI
 document as well:
 
 ```text
-https://raw.githubusercontent.com/virevolai/presence/v0.1.3/openapi.json
+https://raw.githubusercontent.com/virevolai/presence/v0.1.4/openapi.json
 ```
 
 Do not add private runtime URLs, implementation/model names, controller
