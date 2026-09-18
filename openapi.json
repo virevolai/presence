@@ -14,6 +14,52 @@
         "title": "HTTPValidationError",
         "type": "object"
       },
+      "PublicPresenceArtifactOutput": {
+        "additionalProperties": false,
+        "description": "A small Presence artifact addressed by an opaque artifact reference.",
+        "properties": {
+          "artifact_id": {
+            "title": "Artifact Id",
+            "type": "string"
+          },
+          "artifact_ref": {
+            "title": "Artifact Ref",
+            "type": "string"
+          },
+          "kind": {
+            "const": "artifact",
+            "title": "Kind",
+            "type": "string"
+          },
+          "output_id": {
+            "title": "Output Id",
+            "type": "string"
+          },
+          "renderer": {
+            "title": "Renderer",
+            "type": "string"
+          },
+          "schema_version": {
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "shareable": {
+            "title": "Shareable",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "kind",
+          "output_id",
+          "artifact_id",
+          "artifact_ref",
+          "renderer",
+          "schema_version",
+          "shareable"
+        ],
+        "title": "PublicPresenceArtifactOutput",
+        "type": "object"
+      },
       "PublicPresenceAudioFormat": {
         "additionalProperties": false,
         "properties": {
@@ -143,11 +189,57 @@
       },
       "PublicPresenceOutputsResponse": {
         "additionalProperties": false,
+        "examples": [
+          {
+            "outputs": [
+              {
+                "content": [],
+                "kind": "transcript",
+                "output_id": "transcript",
+                "schema_version": "1"
+              },
+              {
+                "artifact_id": "meeting-notes",
+                "artifact_ref": "urn:presence:artifact/...",
+                "kind": "artifact",
+                "output_id": "meeting-notes",
+                "renderer": "presence.board",
+                "schema_version": "1",
+                "shareable": true
+              },
+              {
+                "kind": "recording",
+                "manifest_asset_ref": "urn:rome:asset/...",
+                "recording_id": "rec_...",
+                "schema_version": "1"
+              }
+            ],
+            "session_id": "psn_...",
+            "state": "ended"
+          }
+        ],
         "properties": {
           "outputs": {
             "items": {
-              "additionalProperties": true,
-              "type": "object"
+              "discriminator": {
+                "mapping": {
+                  "artifact": "#/components/schemas/PublicPresenceArtifactOutput",
+                  "recording": "#/components/schemas/PublicPresenceRecordingOutput",
+                  "transcript": "#/components/schemas/PublicPresenceTranscriptOutput"
+                },
+                "propertyName": "kind"
+              },
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/PublicPresenceTranscriptOutput"
+                },
+                {
+                  "$ref": "#/components/schemas/PublicPresenceArtifactOutput"
+                },
+                {
+                  "$ref": "#/components/schemas/PublicPresenceRecordingOutput"
+                }
+              ]
             },
             "title": "Outputs",
             "type": "array"
@@ -226,6 +318,37 @@
           "output_audio"
         ],
         "title": "PublicPresenceRealtimeResponse",
+        "type": "object"
+      },
+      "PublicPresenceRecordingOutput": {
+        "additionalProperties": false,
+        "description": "A retained recording manifest; media bytes are never returned here.",
+        "properties": {
+          "kind": {
+            "const": "recording",
+            "title": "Kind",
+            "type": "string"
+          },
+          "manifest_asset_ref": {
+            "title": "Manifest Asset Ref",
+            "type": "string"
+          },
+          "recording_id": {
+            "title": "Recording Id",
+            "type": "string"
+          },
+          "schema_version": {
+            "title": "Schema Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "recording_id",
+          "schema_version",
+          "manifest_asset_ref"
+        ],
+        "title": "PublicPresenceRecordingOutput",
         "type": "object"
       },
       "PublicPresenceRecordingResponse": {
@@ -549,6 +672,41 @@
           }
         },
         "title": "PublicPresenceSurface",
+        "type": "object"
+      },
+      "PublicPresenceTranscriptOutput": {
+        "additionalProperties": false,
+        "description": "A retained transcript projected into the Session output manifest.",
+        "properties": {
+          "content": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Content",
+            "type": "array"
+          },
+          "kind": {
+            "const": "transcript",
+            "title": "Kind",
+            "type": "string"
+          },
+          "output_id": {
+            "title": "Output Id",
+            "type": "string"
+          },
+          "schema_version": {
+            "title": "Schema Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "output_id",
+          "schema_version",
+          "content"
+        ],
+        "title": "PublicPresenceTranscriptOutput",
         "type": "object"
       },
       "PublicPresenceVersionResponse": {

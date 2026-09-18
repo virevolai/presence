@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+## 0.1.5 - 2026-09-18
+
+- Added the hosted web screen-sharing integration contract, including the
+  required iframe `display-capture` permission and transient-input privacy
+  boundary.
+- Replaced the previously open-ended Session output objects with typed
+  transcript, artifact, and recording schemas in the public OpenAPI snapshot.
+- Added the stable artifact and recording identifiers and schema versions to
+  the output example.
+
 ## 0.1.4 - 2026-09-17
 
 - Clarified the current public customer-key capabilities: Presence authoring,

@@ -99,10 +99,17 @@ if (!response.ok) throw new Error(`Presence session failed: ${response.status}`)
 const session = await response.json();
 const iframe = document.createElement('iframe');
 iframe.src = session.embed_url;
-iframe.allow = 'camera; microphone; autoplay';
+iframe.allow = 'camera; microphone; autoplay; display-capture';
 iframe.title = 'Bohita Presence';
 document.querySelector('#presence').replaceChildren(iframe);
 ```
+
+The hosted client can offer screen sharing when the user explicitly clicks its
+Share screen control. Keep `display-capture` in the iframe `allow` attribute so
+the browser can open its native display picker. Screen sharing is optional and
+transient session input; it can provide presentation frames to Presence while
+active, but does not itself grant retention or public sharing. Some mobile
+browsers do not support display capture and will leave this control unavailable.
 
 Treat `embed_url` as opaque. It is an HTTPS document serving the complete web
 client selected for this session, not a WebSocket address. The client owns its
@@ -410,10 +417,10 @@ flow or retain media merely because recording was requested.
 
 Repository: https://github.com/virevolai/presence
 
-Public contract release: `v0.1.4`<br>
-Published: `2026-09-17`<br>
+Public contract release: `v0.1.5`<br>
+Published: `2026-09-18`<br>
 API/OpenAPI: https://presence.bohita.com/openapi.json<br>
-Changelog: https://github.com/virevolai/presence/blob/v0.1.4/CHANGELOG.md<br>
+Changelog: https://github.com/virevolai/presence/blob/v0.1.5/CHANGELOG.md<br>
 Release feed: https://github.com/virevolai/presence/releases<br>
 Support: mailto:support@bohita.com
 
@@ -483,13 +490,16 @@ Typical response shape:
     {
       "kind": "artifact",
       "output_id": "meeting-notes",
+      "artifact_id": "meeting-notes",
       "artifact_ref": "opaque-do-not-parse",
       "renderer": "presence.board",
+      "schema_version": "1",
       "shareable": true
     },
     {
       "kind": "recording",
       "recording_id": "rec_...",
+      "schema_version": "1",
       "manifest_asset_ref": "opaque-do-not-parse"
     }
   ]
